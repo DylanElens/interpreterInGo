@@ -7,14 +7,20 @@ import (
 )
 
 type Parser struct {
-	l            *lexer.Lexer
-	currentToken token.Token
-	peekToken    token.Token
-	errors       []string //TODO: maybe I can add some error types later
+	l              *lexer.Lexer
+	currentToken   token.Token
+	peekToken      token.Token
+	errors         []string //TODO: maybe I can add some error types later
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(lexer *lexer.Lexer) *Parser {
 	parser := &Parser{l: lexer, errors: []string{}}
+
+	parser.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+
+	parser.registerPrefix(token.IDENT, parser.parseIdentifier)
 
 	parser.nextToken()
 	parser.nextToken()
@@ -53,6 +59,17 @@ func (parser *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return parser.parseReturnStatement()
 	default:
-		return nil
+		return parser.parseExpressionStatement()
 	}
 }
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS
+	LESSGREATER
+	SUM
+	PRODUT
+	PREFIX //-X or !X
+	CALL   //myFunction(X)
+)

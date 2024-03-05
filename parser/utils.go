@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"lumen/ast"
 	"lumen/token"
 )
 
@@ -35,4 +36,16 @@ func (parser *Parser) peekError(inputToken token.TokenType) {
 		parser.peekToken.Type,
 	)
 	parser.errors = append(parser.errors, message)
+}
+
+func (parser *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	parser.prefixParseFns[tokenType] = fn
+}
+
+func (parser *Parser) regigsterInfix(tokenType token.TokenType, fn infixParseFn) {
+	parser.infixParseFns[tokenType] = fn
+}
+
+func (parser *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: parser.currentToken, Value: parser.currentToken.Literal}
 }
